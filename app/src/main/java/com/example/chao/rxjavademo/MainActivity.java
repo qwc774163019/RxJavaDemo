@@ -19,7 +19,12 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.FlowableEmitter;
 import io.reactivex.FlowableOnSubscribe;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -38,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button btn8;
     Button btn9;
     Button btn10;
+    Button btn11;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn9.setOnClickListener(this);
         btn10= (Button) findViewById(R.id.btn10);
         btn10.setOnClickListener(this);
+        btn11= (Button) findViewById(R.id.btn11);
+        btn11.setOnClickListener(this);
     }
 
     @Override
@@ -239,24 +247,72 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         });
                 break;
             case R.id.btn10:
-                Flowable.create(new FlowableOnSubscribe<String>() {
+                Observable.create(new ObservableOnSubscribe<String>() {
                     @Override
-                    public void subscribe(FlowableEmitter<String> e) throws Exception {
+                    public void subscribe(ObservableEmitter<String> e) throws Exception {
                         e.onNext("将会在3秒后显示");
                         SystemClock.sleep(3000);
                         e.onNext("qiwenchao");
                         e.onComplete();
                     }
-                },BackpressureStrategy.BUFFER)
+                })
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Observer<String>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {
+
+                            }
+
+                            @Override
+                            public void onNext(String value) {
+                                Toast.makeText(getApplicationContext(),value,Toast.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                Log.i("QWC","onError");
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                Log.i("QWC","onComplete");
+                            }
+                        });
+//                Flowable.create(new FlowableOnSubscribe<String>() {
+//                    @Override
+//                    public void subscribe(FlowableEmitter<String> e) throws Exception {
+//                        e.onNext("将会在3秒后显示");
+//                        SystemClock.sleep(3000);
+//                        e.onNext("qiwenchao");
+//                        e.onComplete();
+//                    }
+//                },BackpressureStrategy.BUFFER)
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(new Consumer<String>() {
+//                            @Override
+//                            public void accept(String s) throws Exception {
+//                                Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+//                            }
+//                        });
+
+                break;
+            case R.id.btn11:
+                Observable.just(1,2,2,2,3,4,3)
+                        .distinctUntilChanged()
+                        .map(new Function<Integer, String>() {
+                            @Override
+                            public String apply(Integer integer) throws Exception {
+                                return String.valueOf(integer);
+                            }
+                        })
                         .subscribe(new Consumer<String>() {
                             @Override
                             public void accept(String s) throws Exception {
-                                Toast.makeText(getApplicationContext(),s,Toast.LENGTH_LONG).show();
+                                Log.i("QWC",s);
                             }
                         });
-
                 break;
         }
     }
